@@ -1,0 +1,22 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+html:has(body.cover-closed){overflow:hidden}
+.translation{display:block;direction:ltr;font:400 14px/1.65 'DM Sans',Arial,sans-serif;color:#756481;letter-spacing:0;margin-top:6px;unicode-bidi:isolate}
+.garden-basmala .translation{font-size:11px;line-height:1.5;margin-top:0}
+.garden-kicker .translation{font-size:11px;margin-top:0}
+.garden-names .translation{font:500 26px/1.2 'Dancing Script',cursive;color:#594269;margin-top:0}
+.garden-letter{gap:8px;top:25%}
+.hero h1 .translation{font:500 30px/1.25 'Dancing Script',cursive;color:#9275a3;margin-top:0}
+.hero h1 i .translation{font-size:20px}
+.quote p .translation{font-size:17px;line-height:1.95;margin-top:22px;max-width:650px}
+h2 .translation,h3 .translation,.closing .translation{font:500 28px/1.4 'Dancing Script',cursive}
+.actions .translation{font-size:11px;margin-top:3px;color:inherit}
+.actions a{flex-direction:column}
+.date-strip .translation,.event-date .translation{font-size:11px}
+.date-strip strong .translation,.event-date strong .translation{display:none}
+.countdown .translation{font-size:11px;line-height:1.3;margin-top:3px}
+.hero-copy{max-width:450px}
+.hero{overflow:visible}
+.line-flower{white-space:nowrap}
+@media(max-width:650px){.translation{font-size:12px}.quote p .translation{font-size:15px}.garden-letter{top:24%;gap:6px}.garden-names .translation{font-size:24px}.hero-copy{padding-top:34px}h2 .translation,h3 .translation{font-size:25px}}
+@media(max-height:520px) and (orientation:landscape){.garden-letter{top:9%;gap:1px}.garden-basmala{font-size:13px}.garden-names{font-size:27px}.garden-names .translation{font-size:19px}.garden-basmala .translation{font-size:9px}.garden-kicker .translation{font-size:9px}.garden-stage .ribbon-bow{top:56%;max-height:39%}.satin-band{top:72%}}
