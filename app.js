@@ -8,7 +8,7 @@ cover.addEventListener('click',()=>{
 });
 const eventTime=Date.parse('2026-12-04T16:00:00+02:00');
 function tick(){const s=Math.max(0,Math.floor((eventTime-Date.now())/1000));const units=[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60];['days','hours','minutes','seconds'].forEach((id,i)=>document.getElementById(id).textContent=new Intl.NumberFormat(document.documentElement.lang==='en'?'en':'ar',{minimumIntegerDigits:2,useGrouping:false}).format(units[i]));document.getElementById('celebration').hidden=s>0;}tick();setInterval(tick,1000);
-// Keep reading content stable rather than fading it in under a moving viewport.
+// Keep all reading content visible throughout scrolling.
 document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
 // Begin local audio directly inside the opening gesture for mobile browsers.
 const music=document.getElementById('background-music');
@@ -38,7 +38,6 @@ function startAutoScroll(){
   if(document.fonts)document.fonts.ready.then(refreshScrollLimit);
   let last=performance.now();scrollPosition=root.scrollTop;lastWrittenScroll=root.scrollTop;
   function advance(now){
-    // Drop missed time instead of jumping ahead after a slow frame.
     const elapsed=Math.max(0,Math.min(now-last,32));last=now;
     const current=root.scrollTop;
     if(heldPointers.size||heldTouches||document.hidden){
@@ -109,7 +108,7 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
     [[.08,.2],[.92,.32],[.08,.6]].forEach((point,i)=>timers.push(setTimeout(()=>burst(width*point[0],height*point[1],i),250+i*650)));
   }
   document.getElementById('open').addEventListener('click',()=>setTimeout(celebrate,1100));
-  // Celebrate once on opening; no new flashes or canvas work midway through reading.
+  // Fireworks only on opening, never midway through reading.
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
 })();
