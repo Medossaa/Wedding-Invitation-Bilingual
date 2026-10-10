@@ -106,3 +106,4 @@ footer>a{display:inline-flex;min-height:44px;align-items:center;padding:8px 16px
  .garden-stage .ribbon-bow{top:48%;width:32%;left:34%;max-height:49%}
 }
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transition:none}.garden-stage *{transition:none}}
+
