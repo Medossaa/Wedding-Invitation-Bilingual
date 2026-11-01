@@ -2,18 +2,21 @@
 document.body.classList.add('cover-closed');
 const cover=document.getElementById('cover');
 let invitationOpened=false;
+let musicStartAt=Infinity;
 function openInvitation(){
   if(invitationOpened)return;
   invitationOpened=true;
   clearTimeout(automaticOpening);
-  startMusic();cover.classList.add('opened');
+  musicStartAt=performance.now()+1000;
+  setTimeout(()=>{if(wantsMusic)startMusic();},1000);
+  cover.classList.add('opened');
   cover.hidden=true;document.body.classList.remove('cover-closed');
   window.scrollTo({top:0,behavior:'instant'});
   document.querySelector('h1').focus({preventScroll:true});
   startAutoScroll();
   document.dispatchEvent(new Event('invitation-opened'));
 }
-const automaticOpening=setTimeout(openInvitation,5000);
+const automaticOpening=setTimeout(openInvitation,3000);
 cover.addEventListener('click',openInvitation);
 const eventTime=Date.parse('2026-12-04T16:00:00+02:00');
 function tick(){const s=Math.max(0,Math.floor((eventTime-Date.now())/1000));const units=[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60];['days','hours','minutes','seconds'].forEach((id,i)=>document.getElementById(id).textContent=new Intl.NumberFormat(document.documentElement.lang==='en'?'en':'ar',{minimumIntegerDigits:2,useGrouping:false}).format(units[i]));document.getElementById('celebration').hidden=s>0;}tick();setInterval(tick,1000);
@@ -29,10 +32,10 @@ function startMusic(){musicToggle.hidden=false;wantsMusic=true;music.play().then
 musicToggle.addEventListener('click',()=>{if(music.paused){startMusic();}else{wantsMusic=false;music.pause();syncMusicButton();}});
 // Mobile browsers may reject the timer's play attempt until a real gesture.
 document.addEventListener('click',()=>{
-  if(invitationOpened&&wantsMusic&&music.paused)startMusic();
+  if(invitationOpened&&performance.now()>=musicStartAt&&wantsMusic&&music.paused)startMusic();
 },{passive:true});
 music.addEventListener('playing',syncMusicButton);music.addEventListener('pause',syncMusicButton);
-document.addEventListener('visibilitychange',()=>{if(document.hidden){music.pause();}else if(wantsMusic&&cover.hidden){music.play().catch(syncMusicButton);}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){music.pause();}else if(wantsMusic&&cover.hidden&&performance.now()>=musicStartAt){music.play().catch(syncMusicButton);}});
 
 // Continuous automatic scrolling; actual contact is the only interaction pause.
 let autoScrollFrame=null,autoScrollStarted=false;
@@ -125,6 +128,7 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
 })();
+
 
 
 
