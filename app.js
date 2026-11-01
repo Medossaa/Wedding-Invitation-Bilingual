@@ -11,7 +11,7 @@ function openInvitation(){
   setTimeout(()=>{if(wantsMusic)startMusic();},1000);
   cover.classList.add('opened');
   cover.hidden=true;document.body.classList.remove('cover-closed');
-  window.scrollTo({top:0,behavior:'instant'});
+  (document.scrollingElement||document.documentElement).scrollTop=0;
   document.querySelector('h1').focus({preventScroll:true});
   startAutoScroll();
   document.dispatchEvent(new Event('invitation-opened'));
@@ -95,7 +95,7 @@ document.addEventListener('visibilitychange',()=>{heldPointers.clear();heldTouch
 // Return to the start immediately, overriding CSS smooth scrolling.
 document.getElementById('back-to-top').addEventListener('click',event=>{
   event.preventDefault();
-  window.scrollTo({top:0,left:0,behavior:'instant'});
+  (document.scrollingElement||document.documentElement).scrollTop=0;
   document.querySelector('h1').focus({preventScroll:true});
 });
 
