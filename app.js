@@ -13,7 +13,7 @@ function openInvitation(){
   startAutoScroll();
   document.dispatchEvent(new Event('invitation-opened'));
 }
-const automaticOpening=setTimeout(openInvitation,2000);
+const automaticOpening=setTimeout(openInvitation,5000);
 cover.addEventListener('click',openInvitation);
 const eventTime=Date.parse('2026-12-04T16:00:00+02:00');
 function tick(){const s=Math.max(0,Math.floor((eventTime-Date.now())/1000));const units=[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60];['days','hours','minutes','seconds'].forEach((id,i)=>document.getElementById(id).textContent=new Intl.NumberFormat(document.documentElement.lang==='en'?'en':'ar',{minimumIntegerDigits:2,useGrouping:false}).format(units[i]));document.getElementById('celebration').hidden=s>0;}tick();setInterval(tick,1000);
@@ -125,6 +125,7 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
 })();
+
 
 
 
