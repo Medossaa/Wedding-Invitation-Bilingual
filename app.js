@@ -37,32 +37,44 @@ document.addEventListener('click',()=>{
 music.addEventListener('playing',syncMusicButton);music.addEventListener('pause',syncMusicButton);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){music.pause();}else if(wantsMusic&&cover.hidden&&performance.now()>=musicStartAt){music.play().catch(syncMusicButton);}});
 
-// Continuous automatic scrolling; actual contact is the only interaction pause.
+// Start only after the cover unlocks the native document scroller.
 let autoScrollFrame=null,autoScrollStarted=false;
 const heldPointers=new Set();let heldTouches=0;
 let scrollPosition=0,lastWrittenScroll=0;
 function startAutoScroll(){
-  if(autoScrollStarted||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  // Automatic scrolling is explicitly requested; reduced motion still disables fireworks.
+  if(autoScrollStarted)return;
   autoScrollStarted=true;
   const root=document.scrollingElement||document.documentElement;
   const scrollSpeed=120;
-  let maxScroll=0;
-  function refreshScrollLimit(){maxScroll=Math.max(0,root.scrollHeight-root.clientHeight);}
-  refreshScrollLimit();
-  window.addEventListener('resize',refreshScrollLimit,{passive:true});
-  if('ResizeObserver' in window){const layoutObserver=new ResizeObserver(refreshScrollLimit);layoutObserver.observe(document.body);}
-  if(document.fonts)document.fonts.ready.then(refreshScrollLimit);
-  let last=performance.now();scrollPosition=root.scrollTop;lastWrittenScroll=root.scrollTop;
+  let maxScroll=0,layoutDirty=true,last=null;
+  function markLayoutDirty(){layoutDirty=true;}
+  function refreshScrollLimit(){
+    // Safari can temporarily report the full document as root.clientHeight.
+    const viewport=window.innerHeight||document.documentElement.clientHeight;
+    const height=Math.max(root.scrollHeight,document.body.scrollHeight);
+    maxScroll=Math.max(0,height-viewport);
+    layoutDirty=false;
+  }
+  window.addEventListener('resize',markLayoutDirty,{passive:true});
+  window.addEventListener('load',markLayoutDirty,{passive:true});
+  document.addEventListener('load',markLayoutDirty,true);
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',markLayoutDirty,{passive:true});
+  if('ResizeObserver' in window){const observer=new ResizeObserver(markLayoutDirty);observer.observe(document.body);}
+  if(document.fonts)document.fonts.ready.then(markLayoutDirty);
+  scrollPosition=root.scrollTop;lastWrittenScroll=scrollPosition;
   function advance(now){
-    const elapsed=Math.max(0,Math.min(now-last,32));last=now;
+    const elapsed=last===null?0:Math.max(0,Math.min(now-last,32));last=now;
+    // Measure on the first rendered frame after overflow:hidden has been removed.
+    if(layoutDirty)refreshScrollLimit();
     const current=root.scrollTop;
     if(heldPointers.size||heldTouches||document.hidden){
       scrollPosition=current;lastWrittenScroll=current;
     }else{
-      // Adopt a manual scroll, including native swipe momentum, from its new position.
       if(Math.abs(current-lastWrittenScroll)>4)scrollPosition=current;
       scrollPosition=Math.min(maxScroll,Math.max(0,scrollPosition+elapsed*scrollSpeed/1000));
-      if(Math.abs(scrollPosition-current)>=.5){window.scrollTo({top:scrollPosition,left:0,behavior:'instant'});lastWrittenScroll=scrollPosition;}
+      // Native scrollTop avoids older mobile browsers rejecting behavior:'instant'.
+      if(Math.abs(scrollPosition-current)>=.5){root.scrollTop=scrollPosition;lastWrittenScroll=scrollPosition;}
     }
     autoScrollFrame=requestAnimationFrame(advance);
   }
@@ -71,8 +83,8 @@ function startAutoScroll(){
 document.addEventListener('touchstart',event=>{heldTouches=event.touches.length;},{passive:true});
 ['touchend','touchcancel'].forEach(type=>window.addEventListener(type,event=>{heldTouches=event.touches.length;},{passive:true}));
 if('PointerEvent' in window){
- document.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch')heldPointers.add(event.pointerId);},{passive:true});
- ['pointerup','pointercancel'].forEach(type=>window.addEventListener(type,event=>{heldPointers.delete(event.pointerId);},{passive:true}));
+ document.addEventListener('pointerdown',event=>{heldPointers.add(event.pointerId);},{passive:true});
+ ['pointerup','pointercancel'].forEach(type=>window.addEventListener(type,event=>{heldPointers.delete(event.pointerId);if(type==='pointerup'&&event.pointerType==='touch'&&!heldPointers.size)heldTouches=0;},{passive:true}));
 }else{
  document.addEventListener('mousedown',()=>heldPointers.add('mouse'),{passive:true});
  window.addEventListener('mouseup',()=>heldPointers.delete('mouse'),{passive:true});
@@ -128,6 +140,7 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
 })();
+
 
 
 
