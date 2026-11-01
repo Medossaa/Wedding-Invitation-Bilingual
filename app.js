@@ -42,7 +42,7 @@ let autoScrollFrame=null,autoScrollStarted=false;
 const heldPointers=new Set();let heldTouches=0;
 let scrollPosition=0,lastWrittenScroll=0;
 function startAutoScroll(){
-  // Automatic scrolling is explicitly requested; reduced motion still disables fireworks.
+  // Automatic scrolling is explicitly requested; fireworks adapt to reduced motion.
   if(autoScrollStarted)return;
   autoScrollStarted=true;
   const root=document.scrollingElement||document.documentElement;
@@ -105,15 +105,15 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
   const canvas=document.createElement('canvas');canvas.id='celebration-fireworks';canvas.setAttribute('aria-hidden','true');document.body.appendChild(canvas);canvas.hidden=true;
   const ctx=canvas.getContext('2d');if(!ctx)return;
   let width=0,height=0,particles=[],frame=0,last=0,timers=[];
-  const palette=['#a476cc','#8060b2','#8bb7df','#c6a563','#bda6d8'];
+  const palette=['#8c5cb3','#667fb8','#b28b50','#9974ba','#739fc7'];
   function resize(){width=window.innerWidth;height=window.innerHeight;const ratio=Math.min(window.devicePixelRatio||1,1.5);canvas.width=width*ratio;canvas.height=height*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);}
   resize();let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(width!==window.innerWidth||Math.abs(height-window.innerHeight)>100)resize();},180);},{passive:true});
   function burst(x,y,index){
-    if(document.hidden||reduced.matches)return;
-    const color=palette[index%palette.length],count=24;
+    if(document.hidden)return;
+    const color=palette[index%palette.length],count=reduced.matches?14:24;
     for(let i=0;i<count;i++){
       const angle=i/count*Math.PI*2,ring=i%2?1:.62,speed=(55+Math.random()*45)*ring;
-      particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,age:0,life:1.6+Math.random()*.6,color,size:i%6===0?2.8:1.5,trail:[]});
+      particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,age:0,life:1.6+Math.random()*.6,color,size:i%6===0?3.4:2,trail:[]});
     }
     canvas.hidden=false;if(!frame){last=performance.now();frame=requestAnimationFrame(draw);}
   }
@@ -124,22 +124,24 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
     for(const p of particles){
       p.age+=dt;p.trail.push({x:p.x,y:p.y});if(p.trail.length>5)p.trail.shift();
       p.vx*=Math.exp(-.8*dt);p.vy+=28*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
-      ctx.globalAlpha=Math.max(0,1-p.age/p.life)*.8;ctx.strokeStyle=p.color;ctx.lineWidth=p.size*.65;
+      ctx.globalAlpha=Math.max(0,1-p.age/p.life)*.9;ctx.strokeStyle=p.color;ctx.lineWidth=p.size*.65;
       ctx.beginPath();p.trail.forEach((point,i)=>i?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.lineTo(p.x,p.y);ctx.stroke();
       ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
     }
     ctx.globalAlpha=1;if(particles.length){frame=requestAnimationFrame(draw);}else{frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   }
   function celebrate(){
-    if(reduced.matches||document.hidden)return;
+    if(document.hidden)return;
     timers.forEach(clearTimeout);timers=[];
-    [[.08,.2],[.92,.32],[.08,.6]].forEach((point,i)=>timers.push(setTimeout(()=>burst(width*point[0],height*point[1],i),250+i*650)));
+    const points=reduced.matches?[[.12,.22],[.88,.38],[.12,.62]]:[[.12,.22],[.88,.38],[.12,.62],[.88,.72]];
+    points.forEach((point,i)=>timers.push(setTimeout(()=>burst(width*point[0],height*point[1],i),100+i*700)));
   }
-  document.addEventListener('invitation-opened',()=>setTimeout(celebrate,1100));
+  document.addEventListener('invitation-opened',()=>setTimeout(celebrate,200),{once:true});
   // Fireworks only on opening, never midway through reading.
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
 })();
+
 
 
 
