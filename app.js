@@ -2,15 +2,24 @@
 document.body.classList.add('cover-closed');
 const cover=document.getElementById('cover');
 let invitationOpened=false;
-cover.addEventListener('click',()=>{
-  if(invitationOpened)return;invitationOpened=true;startMusic();cover.classList.add('opened');
-  cover.hidden=true;document.body.classList.remove('cover-closed');window.scrollTo({top:0,behavior:'instant'});document.querySelector('h1').focus({preventScroll:true});startAutoScroll();
-});
+function openInvitation(){
+  if(invitationOpened)return;
+  invitationOpened=true;
+  clearTimeout(automaticOpening);
+  startMusic();cover.classList.add('opened');
+  cover.hidden=true;document.body.classList.remove('cover-closed');
+  window.scrollTo({top:0,behavior:'instant'});
+  document.querySelector('h1').focus({preventScroll:true});
+  startAutoScroll();
+  document.dispatchEvent(new Event('invitation-opened'));
+}
+const automaticOpening=setTimeout(openInvitation,2000);
+cover.addEventListener('click',openInvitation);
 const eventTime=Date.parse('2026-12-04T16:00:00+02:00');
 function tick(){const s=Math.max(0,Math.floor((eventTime-Date.now())/1000));const units=[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60];['days','hours','minutes','seconds'].forEach((id,i)=>document.getElementById(id).textContent=new Intl.NumberFormat(document.documentElement.lang==='en'?'en':'ar',{minimumIntegerDigits:2,useGrouping:false}).format(units[i]));document.getElementById('celebration').hidden=s>0;}tick();setInterval(tick,1000);
 // Keep all reading content visible throughout scrolling.
 document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
-// Begin local audio directly inside the opening gesture for mobile browsers.
+// Attempt music on automatic opening; retry directly on the first user gesture when required.
 const music=document.getElementById('background-music');
 const musicToggle=document.getElementById('music-toggle');
 let wantsMusic=true;
@@ -18,6 +27,10 @@ music.volume=.35;
 function syncMusicButton(){const playing=!music.paused;musicToggle.textContent=playing?'♫':'▶';musicToggle.setAttribute('aria-label',playing?'إيقاف الموسيقى':'تشغيل الموسيقى');musicToggle.setAttribute('aria-pressed',String(playing));}
 function startMusic(){musicToggle.hidden=false;wantsMusic=true;music.play().then(syncMusicButton).catch(syncMusicButton);}
 musicToggle.addEventListener('click',()=>{if(music.paused){startMusic();}else{wantsMusic=false;music.pause();syncMusicButton();}});
+// Mobile browsers may reject the timer's play attempt until a real gesture.
+document.addEventListener('click',()=>{
+  if(invitationOpened&&wantsMusic&&music.paused)startMusic();
+},{passive:true});
 music.addEventListener('playing',syncMusicButton);music.addEventListener('pause',syncMusicButton);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){music.pause();}else if(wantsMusic&&cover.hidden){music.play().catch(syncMusicButton);}});
 
@@ -107,10 +120,11 @@ document.getElementById('back-to-top').addEventListener('click',event=>{
     timers.forEach(clearTimeout);timers=[];
     [[.08,.2],[.92,.32],[.08,.6]].forEach((point,i)=>timers.push(setTimeout(()=>burst(width*point[0],height*point[1],i),250+i*650)));
   }
-  document.getElementById('open').addEventListener('click',()=>setTimeout(celebrate,1100));
+  document.addEventListener('invitation-opened',()=>setTimeout(celebrate,1100));
   // Fireworks only on opening, never midway through reading.
   function clear(){timers.forEach(clearTimeout);timers=[];particles=[];cancelAnimationFrame(frame);frame=0;canvas.hidden=true;ctx.clearRect(0,0,width,height);}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});reduced.addEventListener('change',()=>{if(reduced.matches)clear();});
 })();
+
 
 
